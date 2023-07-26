@@ -127,7 +127,7 @@ class RadixLayer(layers.Layer):
             Size of inputs, this is needed in the build function but is currently not used because our kernel 
             shapes should take on the shape of the radix layer
         """
-        self.kernel = self.add_weight("kernel", shape = self.layerval.shape, initializer=tf.keras.initializers.Constant(value=0.25), trainable=True)
+        self.kernel = self.add_weight("kernel", shape = self.layerval.shape, initializer='random_normal', trainable=True)
     def call(self, inputs:tf.Tensor):
         """
         Used whenever the RadixLayer is called during iterations
@@ -141,7 +141,10 @@ class RadixLayer(layers.Layer):
         masked = tf.math.multiply(self.kernel,mask())
         #extrazero =  tf.zeros(shape=(self.layerval.shape[0]-inputs.shape[1]), dtype=tf.int32)
         #inputs = tf.concat(inputs,extrazero)
-        return tf.matmul(inputs,masked)
+        try:
+            return tf.matmul(inputs,masked)
+        except:
+            return None
         
         
 
@@ -220,10 +223,12 @@ def calculate_sparsity(sparselayers:list):
     for layer in sparselayers:
         a += np.count_nonzero(layer)
         b += np.prod(layer.shape)
-    return 1 - a/b
+    try:
+        return 1 - a/b
+    except:
+        return -1
 
 sparsity = calculate_sparsity(rlayers)
-print("Sparsity: "+ str(sparsity))
 
 
 # # ### Compiling of model
