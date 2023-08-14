@@ -1,4 +1,4 @@
-from RadixNet import Mask, RadixLayer, CustomModel, calculate_sparsity
+from RadixNet import Mask, RadixLayer, CustomModel
 import pytest
 import numpy as np
 import pandas as pd
@@ -8,7 +8,7 @@ import pickle
 import tensorflow as tf
 from tensorflow.keras import datasets, layers, models
 import tensorflow_model_optimization as tfmot
-from RadixNetCalc import emr_net, kemr_net
+from RadixNetFuncs import emr_net, kemr_net, calculate_sparsity
 import math
 
 data = pd.read_csv("MNIST/mnist_train.csv") #mnist train
@@ -64,7 +64,7 @@ def test_mask(layerval,var,exp):
 def test_Radix(layerval, input, exp):
     tf.keras.utils.set_random_seed(100)
     tf.config.experimental.enable_op_determinism()
-    rlayer = RadixLayer(2, layerval)
+    rlayer = RadixLayer(2, layerval, lambda a: a)
     if input.shape[1]!=layerval.shape[0]:
         output = rlayer(input)
         assert output==None
@@ -100,11 +100,11 @@ def test_sparsity(list, exp):
 @pytest.mark.parametrize(
     "N,B,expsparsity,exploss,expacc", 
     [
-        ([[10,10], [10]],[8, 3, 1, 1],0.9, 0.32369208335876465, 0.9104910492897034),
+        ([[10,10], [10]],[8, 3, 1, 1],0.9, 0.32369205355644226, 0.9104910492897034),
         ([[10], [5,2]],[80, 30, 10, 1],0.05935386927122466,0.15198080241680145, 0.9567956924438477), 
         ([[10,10,1]],[8, 3, 1, 1],0.9003380916604057,1.2603896856307983, 0.6031603217124939) ,
-        ([[2, 2], [2]], [196, 75, 25, 3], 0.5, 0.16933931410312653, 0.9521952271461487),
-        ([[1, 1], [1]], [784, 300, 100, 10], 0,0.1043885126709938, 0.968596875667572)
+        ([[2, 2], [2]], [196, 75, 25, 3], 0.5, 0.16933748126029968, 0.9521952271461487),
+        ([[1, 1], [1]], [784, 300, 100, 10], 0,0.10452208667993546, 0.9689968824386597)
     ]
 )
 def test_model(N,B,expsparsity,exploss,expacc):
